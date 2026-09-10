@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3CLogic — Queue &amp; Agent Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+  :root {
+    --Primary-Color: #0E71EB;
+    --White-BG: #FFFFFF;
+    --Light-Grey-BG: #EEEEEE;
+    --Title-BG: #F6FAFF;
+    --Primary-Text: #39394B;
+    --Border: #DCDCDC;
+    --color-content-secondary: #61616F;
+    --color-content-tertiary: #888893;
+    --color-content-disabled: #DBDBDB;
+    --color-border-primary: #DBDBDB;
+  }
+
+  * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--White-BG);
+    color: var(--Primary-Text);
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    font-size: 18px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    user-select: none;
+  }
+
+  .widget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .panel {
+    background: var(--White-BG);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .panel__header {
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--Primary-Text);
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  /* Row height is fixed at 44px (24px vertical padding + 20px line-height),
+     so 264px = header + 5 rows. min-height guarantees that much is always
+     visible before scrolling kicks in; flex:1 lets the area grow to fill
+     the rest of the panel (e.g. when the grid stretches this panel to
+     match a taller sibling), which is what pins the footer to the bottom. */
+  .panel__table-wrap {
+    width: 100%;
+    min-height: 264px;     /* 44px header + 5 * 44px rows */
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+
+  table.panel__table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .panel__table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--Title-BG);
+    border-bottom: 1px solid var(--Primary-Color);
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--Primary-Text);
+    text-align: left;
+    padding: 12px 20px;
+    white-space: nowrap;
+  }
+
+  .panel__table thead th.col-right { text-align: right; }
+  .panel__table thead th.col-center { text-align: center; }
+
+  .panel__table tbody td {
+    padding: 12px 20px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--Primary-Text);
+    border-bottom: 1px solid var(--color-border-primary);
+    white-space: nowrap;
+  }
+
+  .panel__table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .col-right { text-align: right; }
+  .col-center { text-align: center; }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+
+  .toggle input {
+    display: none;
+  }
+
+  .toggle__track {
+    position: absolute;
+    inset: 0;
+    background: var(--Light-Grey-BG);
+    border-radius: 999px;
+    transition: background 0.15s ease;
+  }
+
+  .toggle__track::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--White-BG);
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    transition: transform 0.15s ease;
+  }
+
+  .toggle input:checked + .toggle__track {
+    background: var(--Primary-Color);
+  }
+
+  .toggle input:checked + .toggle__track::before {
+    transform: translateX(18px);
+  }
+
+  /* Pagination — sits directly under the fixed-height table area, so it
+     lands at the same position on every panel regardless of row count. */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--color-border-primary);
+    font-size: 13px;
+    color: var(--Primary-Text);
+  }
+
+  .pagination__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--color-border-primary);
+    border-radius: 4px;
+    background: var(--White-BG);
+    color: var(--color-content-disabled);
+    cursor: not-allowed;
+  }
+
+  .pagination__btn--active {
+    color: var(--Primary-Text);
+    cursor: pointer;
+  }
+
+  .pagination__btn--active:hover {
+    background: var(--color-bg-hover-blue, #E4F0FF);
+    border-color: var(--Primary-Color);
+    color: var(--Primary-Color);
+  }
+
+  .pagination__label {
+    color: var(--color-content-secondary);
+    margin: 0 4px;
+  }
+
+  .pagination__input {
+    width: 34px;
+    height: 26px;
+    border: 1px solid var(--color-border-primary);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 13px;
+    font-family: 'Roboto', sans-serif;
+    color: var(--Primary-Text);
+  }
+
+  .pagination__input:focus {
+    outline: none;
+    border-color: var(--Primary-Color);
+  }
+
+  /* ── Agent Overview — Interaction Log panel ── */
+  .is-hidden {
+    display: none !important;
+  }
+
+  /* List and detail are two full-height views swapped inside the same
+     panel — the panel's own border/rounded corners never change, so the
+     detail screen opens "within the grid box" rather than as a page modal. */
+  .agent-log-list-view,
+  .agent-log-detail-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .agent-log-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table.agent-log-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .agent-log-table thead th {
+    background: var(--Title-BG);
+    border-bottom: 1px solid var(--Primary-Color);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--Primary-Text);
+    text-align: left;
+    padding: 12px 20px;
+    white-space: nowrap;
+  }
+
+  .agent-log-table thead th.th-actions {
+    padding: 12px 8px;
+  }
+
+  .agent-log-table tbody td {
+    padding: 12px 20px;     /* matches Queue Overview: 44px total row height */
+    border-bottom: 1px solid var(--color-border-primary);
+    vertical-align: middle;
+  }
+
+  .agent-log-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .log-queue {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--Primary-Text);
+  }
+
+  .log-number {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #39394B;
+  }
+
+  .log-call-end {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  .log-call-end__date {
+    color: var(--Primary-Text);
+    font-weight: 400;
+  }
+
+  .log-call-end__sep {
+    color: var(--color-border-primary);
+  }
+
+  .log-call-end__time {
+    color: var(--color-content-tertiary);
+    font-weight: 400;
+  }
+
+  .log-actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .icon-btn-circle {
+    flex-shrink: 0;
+    width: 22px;            /* matches the Queue Overview toggle's height, so row heights align */
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--White-BG);
+    border: 1px solid var(--color-border-primary);
+    color: var(--Primary-Text);
+    cursor: pointer;
+  }
+
+  .icon-btn-circle .material-symbols-outlined {
+    font-size: 14px;
+  }
+
+  .icon-btn-circle:hover {
+    background: var(--color-bg-hover-blue, #E4F0FF);
+    border-color: var(--Primary-Color);
+    color: var(--Primary-Color);
+  }
+
+  .icon-btn-circle--muted {
+    background: var(--Light-Grey-BG);
+    border: none;
+    color: var(--Primary-Text);
+  }
+
+  .icon-btn-circle--muted:hover {
+    background: var(--color-bg-hover-blue, #E4F0FF);
+    color: var(--Primary-Color);
+  }
+
+  /* ── Interaction Log — detail view ── */
+  .agent-log-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 2px solid var(--Primary-Color);
+    flex-shrink: 0;
+  }
+
+  .agent-log-detail-back {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--Light-Grey-BG);
+    border: none;
+    color: var(--Primary-Text);
+    cursor: pointer;
+  }
+
+  .agent-log-detail-back:hover {
+    background: var(--color-bg-hover, #E8E8E8);
+  }
+
+  .agent-log-detail-back .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .agent-log-detail-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--Primary-Text);
+  }
+
+  .agent-log-detail-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--color-border-primary);
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-row__label {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-content-secondary);
+    white-space: nowrap;
+  }
+
+  .detail-row__value {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--Primary-Text);
+    text-align: right;
+  }
+
+  .agent-log-detail-footer {
+    padding: 16px 20px;
+    flex-shrink: 0;
+  }
+
+  .call-back-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--Primary-Text);
+    border-radius: 8px;
+    background: var(--White-BG);
+    color: var(--Primary-Text);
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .call-back-btn:hover {
+    background: var(--color-bg-hover-blue, #E4F0FF);
+    border-color: var(--Primary-Color);
+    color: var(--Primary-Color);
+  }
+
+  .call-back-btn .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  @media (max-width: 480px) {
+    .log-actions-cell {
+      gap: 6px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .widget-grid {
+      grid-template-columns: 1fr;
+    }
+    body {
+      padding: 16px;
+    }
+  }
+
+  /* KPI card row */
+  /* Always exactly 8 columns — one row. On narrow viewports the row
+     scrolls horizontally instead of wrapping to a second line. */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(140px, 1fr));
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .kpi-card {
+    position: relative;
+    background: var(--White-BG);
+    border: 1px solid var(--color-border-primary);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(23, 23, 40, 0.04);
+    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  /* Rounded top accent bar — clipped to the card's radius by overflow:hidden above. */
+  .kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--Primary-Color);
+  }
+
+  .kpi-card:hover {
+    box-shadow: 0 6px 16px rgba(23, 23, 40, 0.10);
+    border-color: var(--color-border-secondary, #E8E8E8);
+    transform: translateY(-2px);
+  }
+
+  .kpi-card__eyebrow {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    color: var(--color-content-tertiary, #888893);
+    margin-bottom: 6px;
+  }
+
+  /* Number leads, so the label becomes a lighter caption underneath it. */
+  .kpi-card__label {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+    color: var(--color-content-secondary);
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .kpi-card__value {
+    font-size: 30px;
+    line-height: 36px;
+    margin-bottom: 2px;
+    font-weight: 700;
+    color: var(--Primary-Text);
+  }
+
+  /* Semantic accents — flag metrics that need attention (missed calls,
+     low occupancy) and keep everything else on the neutral brand accent. */
+  .kpi-card--negative::before {
+    background: var(--color-bg-negative, #DC3545);
+  }
+
+  .kpi-card--negative .kpi-card__value {
+    color: var(--color-content-negative-bold, #B02A37);
+  }
+
+  .kpi-card--notice::before {
+    background: var(--color-bg-notice, #FFC107);
+  }
+</style>
+</head>
+<body>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">60</span>
+      <span class="kpi-card__label">Handled Interaction</span>
+    </div>
+    <div class="kpi-card kpi-card--negative">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">04</span>
+      <span class="kpi-card__label">Missed Calls</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">00:45:20</span>
+      <span class="kpi-card__label">Average Handle Duration</span>
+    </div>
+    <div class="kpi-card kpi-card--notice">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">00:45:20</span>
+      <span class="kpi-card__label">Away Duration</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">03:56:30</span>
+      <span class="kpi-card__label">Average Wrap-up Duration</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">10</span>
+      <span class="kpi-card__label">Call Transferred</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">13</span>
+      <span class="kpi-card__label">Call Conferenced</span>
+    </div>
+    <div class="kpi-card kpi-card--negative">
+      <span class="kpi-card__eyebrow">Todays</span>
+      <span class="kpi-card__value">12%</span>
+      <span class="kpi-card__label">Occupancy Ratio</span>
+    </div>
+  </div>
+
+  <div class="widget-grid">
+
+    <!-- QUEUE OVERVIEW -->
+    <section class="panel">
+      <div class="panel__header">Queue Overview</div>
+      <div class="panel__table-wrap">
+      <table class="panel__table">
+        <thead>
+          <tr>
+            <th>Queue Name</th>
+            <th class="col-center">Interactions Waiting</th>
+            <th class="col-center">Agent Available</th>
+            <th class="col-right">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SNOW Queue</td>
+            <td class="col-center">0</td>
+            <td class="col-center">0</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>NVC</td>
+            <td class="col-center">0</td>
+            <td class="col-center">0</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>Emergency Queue</td>
+            <td class="col-center">0</td>
+            <td class="col-center">0</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="pagination">
+        <button class="pagination__btn" disabled aria-label="First page">
+          <span class="material-symbols-outlined">first_page</span>
+        </button>
+        <button class="pagination__btn" disabled aria-label="Previous page">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <span class="pagination__label">Page</span>
+        <input class="pagination__input" type="text" value="1" readonly>
+        <span class="pagination__label">of 1</span>
+        <button class="pagination__btn" disabled aria-label="Next page">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+        <button class="pagination__btn" disabled aria-label="Last page">
+          <span class="material-symbols-outlined">last_page</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- AGENT OVERVIEW — INTERACTION LOG -->
+    <section class="panel agent-log-panel">
+
+      <!-- LIST VIEW -->
+      <div class="agent-log-list-view">
+        <div class="panel__header">Agent Interaction Log</div>
+
+        <div class="agent-log-table-wrap">
+          <table class="agent-log-table">
+            <thead>
+              <tr>
+                <th>Queue</th>
+                <th>Number</th>
+                <th>Call End Time</th>
+                <th class="th-actions" aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="log-queue">Emergency Support</div>
+                </td>
+                <td>
+                  <span class="log-number">215-302-3376</span>
+                </td>
+                <td>
+                  <div class="log-call-end"><span class="log-call-end__date">May 08 2023</span><span class="log-call-end__sep">|</span><span class="log-call-end__time">10:33:11 (UTC+5:30)</span></div>
+                </td>
+                <td class="log-actions-cell">
+                  <button class="icon-btn-circle icon-btn-circle--muted js-view-detail" aria-label="View interaction details"
+                    data-manager="Salesforce_Out" data-queue="Emergency Support" data-number="215-302-3376"
+                    data-start="May 08 2023 10:23:24 AM" data-end="May 08 2023 10:33:11 AM">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="log-queue">Hardware Support</div>
+                </td>
+                <td>
+                  <span class="log-number">937-330-1634</span>
+                </td>
+                <td>
+                  <div class="log-call-end"><span class="log-call-end__date">May 08 2023</span><span class="log-call-end__sep">|</span><span class="log-call-end__time">11:23:24 (UTC+5:30)</span></div>
+                </td>
+                <td class="log-actions-cell">
+                  <button class="icon-btn-circle icon-btn-circle--muted js-view-detail" aria-label="View interaction details"
+                    data-manager="ServiceNow_In" data-queue="Hardware Support" data-number="937-330-1634"
+                    data-start="May 08 2023 11:13:02 AM" data-end="May 08 2023 11:23:24 AM">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="log-queue">Outbound Call</div>
+                </td>
+                <td>
+                  <span class="log-number">027-515-0655</span>
+                </td>
+                <td>
+                  <div class="log-call-end"><span class="log-call-end__date">May 08 2023</span><span class="log-call-end__sep">|</span><span class="log-call-end__time">11:26:12 (UTC+5:30)</span></div>
+                </td>
+                <td class="log-actions-cell">
+                  <button class="icon-btn-circle icon-btn-circle--muted js-view-detail" aria-label="View interaction details"
+                    data-manager="Salesforce_Out" data-queue="Outbound Call" data-number="027-515-0655"
+                    data-start="May 08 2023 11:16:45 AM" data-end="May 08 2023 11:26:12 AM">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="log-queue">CSM Leads</div>
+                </td>
+                <td>
+                  <span class="log-number">078-601-3354</span>
+                </td>
+                <td>
+                  <div class="log-call-end"><span class="log-call-end__date">May 08 2023</span><span class="log-call-end__sep">|</span><span class="log-call-end__time">12:15:03 (UTC+5:30)</span></div>
+                </td>
+                <td class="log-actions-cell">
+                  <button class="icon-btn-circle icon-btn-circle--muted js-view-detail" aria-label="View interaction details"
+                    data-manager="HubSpot_In" data-queue="CSM Leads" data-number="078-601-3354"
+                    data-start="May 08 2023 12:05:40 PM" data-end="May 08 2023 12:15:03 PM">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="log-queue">Hardware Support</div>
+                </td>
+                <td>
+                  <span class="log-number">828-216-2190</span>
+                </td>
+                <td>
+                  <div class="log-call-end"><span class="log-call-end__date">May 08 2023</span><span class="log-call-end__sep">|</span><span class="log-call-end__time">13:11:22 (UTC+5:30)</span></div>
+                </td>
+                <td class="log-actions-cell">
+                  <button class="icon-btn-circle icon-btn-circle--muted js-view-detail" aria-label="View interaction details"
+                    data-manager="ServiceNow_In" data-queue="Hardware Support" data-number="828-216-2190"
+                    data-start="May 08 2023 12:58:47 PM" data-end="May 08 2023 01:11:22 PM">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <button class="pagination__btn" disabled aria-label="First page">
+            <span class="material-symbols-outlined">first_page</span>
+          </button>
+          <button class="pagination__btn" disabled aria-label="Previous page">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span class="pagination__label">Page</span>
+          <input class="pagination__input" type="text" value="1" readonly>
+          <span class="pagination__label">of 2</span>
+          <button class="pagination__btn pagination__btn--active" aria-label="Next page">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+          <button class="pagination__btn pagination__btn--active" aria-label="Last page">
+            <span class="material-symbols-outlined">last_page</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- DETAIL VIEW -->
+      <div class="agent-log-detail-view is-hidden">
+        <div class="agent-log-detail-header">
+          <button class="agent-log-detail-back js-back-to-list" aria-label="Back to interaction log">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span class="agent-log-detail-title">Interaction Log Details</span>
+        </div>
+
+        <div class="agent-log-detail-body">
+          <div class="detail-row">
+            <span class="detail-row__label">Interaction Manager</span>
+            <span class="detail-row__value" id="detail-manager">Salesforce_Out</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Queue</span>
+            <span class="detail-row__value" id="detail-queue">Emergency Support</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Dial in Number</span>
+            <span class="detail-row__value" id="detail-number">215-302-3376</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Call Start Time</span>
+            <span class="detail-row__value" id="detail-start">May 08 2023 10:23:24 AM</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-row__label">Call End Time</span>
+            <span class="detail-row__value" id="detail-end">May 08 2023 10:33:11 AM</span>
+          </div>
+        </div>
+
+        <div class="agent-log-detail-footer">
+          <button class="call-back-btn" type="button">
+            <span class="material-symbols-outlined">phone_callback</span>
+            Call Back
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    (function () {
+      var listView = document.querySelector('.agent-log-list-view');
+      var detailView = document.querySelector('.agent-log-detail-view');
+      var fields = {
+        manager: document.getElementById('detail-manager'),
+        queue: document.getElementById('detail-queue'),
+        number: document.getElementById('detail-number'),
+        start: document.getElementById('detail-start'),
+        end: document.getElementById('detail-end')
+      };
+
+      document.querySelectorAll('.js-view-detail').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          fields.manager.textContent = btn.dataset.manager;
+          fields.queue.textContent = btn.dataset.queue;
+          fields.number.textContent = btn.dataset.number;
+          fields.start.textContent = btn.dataset.start;
+          fields.end.textContent = btn.dataset.end;
+          listView.classList.add('is-hidden');
+          detailView.classList.remove('is-hidden');
+        });
+      });
+
+      var backBtn = document.querySelector('.js-back-to-list');
+      if (backBtn) {
+        backBtn.addEventListener('click', function () {
+          detailView.classList.add('is-hidden');
+          listView.classList.remove('is-hidden');
+        });
+      }
+    })();
+  </script>
+
+</body>
+</html>
