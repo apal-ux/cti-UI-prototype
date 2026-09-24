@@ -80,7 +80,7 @@
      match a taller sibling), which is what pins the footer to the bottom. */
   .panel__table-wrap {
     width: 100%;
-    min-height: 264px;     /* 44px header + 5 * 44px rows */
+    min-height: 240px;     /* 40px header + 5 * 40px rows */
     flex: 1;
     overflow-y: auto;
     overflow-x: auto;
@@ -102,7 +102,7 @@
     font-weight: 600;
     color: var(--Primary-Text);
     text-align: left;
-    padding: 12px 20px;
+    padding: 10px 20px;
     white-space: nowrap;
   }
 
@@ -110,13 +110,14 @@
   .panel__table thead th.col-center { text-align: center; }
 
   .panel__table tbody td {
-    padding: 12px 20px;
+    padding: 10px 20px;
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
     color: var(--Primary-Text);
     border-bottom: 1px solid var(--color-border-primary);
     white-space: nowrap;
+    vertical-align: middle;
   }
 
   .panel__table tbody tr:last-child td {
@@ -130,8 +131,8 @@
   .toggle {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 22px;
+    width: 36px;
+    height: 20px;
   }
 
   .toggle input {
@@ -151,8 +152,8 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     background: var(--White-BG);
     border-radius: 50%;
     box-shadow: 0 1px 2px rgba(0,0,0,0.25);
@@ -164,7 +165,7 @@
   }
 
   .toggle input:checked + .toggle__track::before {
-    transform: translateX(18px);
+    transform: translateX(16px);
   }
 
   /* Pagination — sits directly under the fixed-height table area, so it
@@ -561,6 +562,29 @@
   .kpi-card--notice::before {
     background: var(--color-bg-notice, #FFC107);
   }
+
+  /* App footer — "Powered by" + logo, centered under the widget grid */
+  .app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  .app-footer__text {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    color: var(--color-content-tertiary);
+  }
+
+  .app-footer__logo {
+    height: 18px;
+    width: auto;
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -571,7 +595,7 @@
       <span class="kpi-card__value">60</span>
       <span class="kpi-card__label">Handled Interaction</span>
     </div>
-    <div class="kpi-card kpi-card--negative">
+    <div class="kpi-card">
       <span class="kpi-card__eyebrow">Todays</span>
       <span class="kpi-card__value">04</span>
       <span class="kpi-card__label">Missed Calls</span>
@@ -581,7 +605,7 @@
       <span class="kpi-card__value">00:45:20</span>
       <span class="kpi-card__label">Average Handle Duration</span>
     </div>
-    <div class="kpi-card kpi-card--notice">
+    <div class="kpi-card">
       <span class="kpi-card__eyebrow">Todays</span>
       <span class="kpi-card__value">00:45:20</span>
       <span class="kpi-card__label">Away Duration</span>
@@ -601,7 +625,7 @@
       <span class="kpi-card__value">13</span>
       <span class="kpi-card__label">Call Conferenced</span>
     </div>
-    <div class="kpi-card kpi-card--negative">
+    <div class="kpi-card">
       <span class="kpi-card__eyebrow">Todays</span>
       <span class="kpi-card__value">12%</span>
       <span class="kpi-card__label">Occupancy Ratio</span>
@@ -624,10 +648,11 @@
           </tr>
         </thead>
         <tbody>
+          <!-- PAGE 1: Rows 1-5 -->
           <tr>
             <td>SNOW Queue</td>
-            <td class="col-center">0</td>
-            <td class="col-center">0</td>
+            <td class="col-center">12</td>
+            <td class="col-center">8</td>
             <td class="col-right">
               <label class="toggle">
                 <input type="checkbox" checked disabled>
@@ -637,8 +662,8 @@
           </tr>
           <tr>
             <td>NVC</td>
-            <td class="col-center">0</td>
-            <td class="col-center">0</td>
+            <td class="col-center">7</td>
+            <td class="col-center">5</td>
             <td class="col-right">
               <label class="toggle">
                 <input type="checkbox" checked disabled>
@@ -648,8 +673,87 @@
           </tr>
           <tr>
             <td>Emergency Queue</td>
-            <td class="col-center">0</td>
-            <td class="col-center">0</td>
+            <td class="col-center">23</td>
+            <td class="col-center">3</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>Hardware Support</td>
+            <td class="col-center">15</td>
+            <td class="col-center">10</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr>
+            <td>Billing Queries</td>
+            <td class="col-center">8</td>
+            <td class="col-center">4</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+
+          <!-- PAGE 2: Rows 6-10 (hidden by pagination) -->
+          <tr style="display: none;">
+            <td>Technical Support</td>
+            <td class="col-center">19</td>
+            <td class="col-center">6</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr style="display: none;">
+            <td>Customer Success</td>
+            <td class="col-center">5</td>
+            <td class="col-center">7</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr style="display: none;">
+            <td>Sales Inquiry</td>
+            <td class="col-center">11</td>
+            <td class="col-center">9</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr style="display: none;">
+            <td>Escalations</td>
+            <td class="col-center">6</td>
+            <td class="col-center">2</td>
+            <td class="col-right">
+              <label class="toggle">
+                <input type="checkbox" checked disabled>
+                <span class="toggle__track"></span>
+              </label>
+            </td>
+          </tr>
+          <tr style="display: none;">
+            <td>Outbound Campaigns</td>
+            <td class="col-center">14</td>
+            <td class="col-center">9</td>
             <td class="col-right">
               <label class="toggle">
                 <input type="checkbox" checked disabled>
@@ -670,11 +774,11 @@
         </button>
         <span class="pagination__label">Page</span>
         <input class="pagination__input" type="text" value="1" readonly>
-        <span class="pagination__label">of 1</span>
-        <button class="pagination__btn" disabled aria-label="Next page">
+        <span class="pagination__label">of 2</span>
+        <button class="pagination__btn pagination__btn--active" aria-label="Next page">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
-        <button class="pagination__btn" disabled aria-label="Last page">
+        <button class="pagination__btn pagination__btn--active" aria-label="Last page">
           <span class="material-symbols-outlined">last_page</span>
         </button>
       </div>
@@ -844,18 +948,76 @@
         </div>
 
         <div class="agent-log-detail-footer">
-          <button class="call-back-btn" type="button">
-            <span class="material-symbols-outlined">phone_callback</span>
-            Call Back
-          </button>
         </div>
       </div>
     </section>
 
   </div>
 
+  <footer class="app-footer">
+    <span class="app-footer__text">Powered by</span>
+    <img class="app-footer__logo" src="https://voiceaihub-eqa.i3clogic.com/assets/images/3CLogic_Logo.svg" alt="3CLogic">
+  </footer>
+
   <script>
     (function () {
+      // ── Queue Overview Pagination ──
+      var queueTable = document.querySelector('.panel__table tbody');
+      var queuePagination = document.querySelectorAll('.pagination')[0];
+      var queuePageInput = queuePagination.querySelector('.pagination__input');
+      var queuePageButtons = queuePagination.querySelectorAll('.pagination__btn');
+
+      var queueCurrentPage = 1;
+      var queueRowsPerPage = 5;
+      var queueTotalRows = 10;
+      var queueTotalPages = Math.ceil(queueTotalRows / queueRowsPerPage);
+
+      function updateQueuePagination() {
+        var allRows = queueTable.querySelectorAll('tr');
+
+        // Hide all rows first
+        allRows.forEach(function (row) {
+          row.style.display = 'none';
+        });
+
+        // Show rows for current page
+        var startIdx = (queueCurrentPage - 1) * queueRowsPerPage;
+        var endIdx = startIdx + queueRowsPerPage;
+        for (var i = startIdx; i < endIdx && i < allRows.length; i++) {
+          allRows[i].style.display = '';
+        }
+
+        // Update page display
+        queuePageInput.value = queueCurrentPage;
+
+        // Update button states
+        queuePageButtons[0].disabled = queueCurrentPage === 1;
+        queuePageButtons[0].classList.toggle('pagination__btn--active', queueCurrentPage > 1);
+        queuePageButtons[1].disabled = queueCurrentPage === 1;
+        queuePageButtons[1].classList.toggle('pagination__btn--active', queueCurrentPage > 1);
+        queuePageButtons[2].disabled = queueCurrentPage === queueTotalPages;
+        queuePageButtons[2].classList.toggle('pagination__btn--active', queueCurrentPage < queueTotalPages);
+        queuePageButtons[3].disabled = queueCurrentPage === queueTotalPages;
+        queuePageButtons[3].classList.toggle('pagination__btn--active', queueCurrentPage < queueTotalPages);
+      }
+
+      queuePageButtons[0].addEventListener('click', function () {
+        if (queueCurrentPage > 1) { queueCurrentPage = 1; updateQueuePagination(); }
+      });
+      queuePageButtons[1].addEventListener('click', function () {
+        if (queueCurrentPage > 1) { queueCurrentPage--; updateQueuePagination(); }
+      });
+      queuePageButtons[2].addEventListener('click', function () {
+        if (queueCurrentPage < queueTotalPages) { queueCurrentPage++; updateQueuePagination(); }
+      });
+      queuePageButtons[3].addEventListener('click', function () {
+        if (queueCurrentPage < queueTotalPages) { queueCurrentPage = queueTotalPages; updateQueuePagination(); }
+      });
+
+      // Initialize pagination
+      updateQueuePagination();
+
+      // ── Agent Interaction Log Detail View ──
       var listView = document.querySelector('.agent-log-list-view');
       var detailView = document.querySelector('.agent-log-detail-view');
       var fields = {
